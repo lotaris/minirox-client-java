@@ -1,6 +1,7 @@
 package com.lotaris.minirox.client;
 
-import com.lotaris.rox.common.config.JsonConfigurationFile;
+import com.lotaris.rox.common.config.ServerListConfiguration;
+import com.lotaris.rox.common.config.YamlConfigurationFile;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class MiniRoxConfiguration {
 	/**
 	 * Base configuration that should be present in the home directory
 	 */
-	private static final String BASE_CONFIG_PATH = ".rox/minirox.json";
+	private static final String BASE_CONFIG_PATH = ".rox/minirox.yml";
 		
 	/**
 	 * Root node name of the tree configuration
@@ -57,7 +58,7 @@ public class MiniRoxConfiguration {
 		config = new CompositeConfiguration();
 				
 		try {
-			config.addConfiguration(new JsonConfigurationFile(BASE_CONFIG_PATH, P_ROOT_NODE_NAME));
+			config.addConfiguration(new YamlConfigurationFile(BASE_CONFIG_PATH, P_ROOT_NODE_NAME, new ServerListConfiguration()));
 		}
 		catch (ConfigurationException ce) {
 			if (LOGGER.isTraceEnabled()) {

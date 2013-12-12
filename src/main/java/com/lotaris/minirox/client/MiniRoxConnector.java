@@ -98,8 +98,8 @@ public class MiniRoxConnector implements Serializable {
 				JSONObject testResult = new JSONObject().
 					put("k", result.getKey()).
 					put("n", result.getName()).
-					put("j", (result.getProject() != null && !result.getProject().isEmpty() ? result.getProject() : projectName)).
-					put("v", (result.getVersion() != null && !result.getVersion().isEmpty() ? result.getVersion() : projectVersion)).
+					put("j", projectName).
+					put("v", projectVersion).
 					put("p", result.isPassed()).
 					put("d", result.getDuration()).
 					put("f", result.getFlags()).
@@ -164,7 +164,7 @@ public class MiniRoxConnector implements Serializable {
 			if (isStarted()) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-				new JsonSerializer().serializePayload(new OutputStreamWriter(baos), payload);
+				new JsonSerializer().serializePayload(new OutputStreamWriter(baos), payload, false);
 
 				socket.emit("payload", new String(baos.toByteArray()));
 			}
