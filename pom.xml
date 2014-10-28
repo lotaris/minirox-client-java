@@ -6,9 +6,9 @@
 
 	<groupId>com.lotaris.minirox.client</groupId>
 	<artifactId>minirox-client-java-core</artifactId>
-	<version>2.1.0-SNAPSHOT</version>
-	
-	<name>Lotaris MiniROX Client (Java)</name>
+	<version>2.1.0</version>
+
+	<name>MiniROX Client Java</name>
 
 	<packaging>jar</packaging>
 
@@ -23,7 +23,7 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
 				<configuration>
-					<encoding>UTF-8</encoding>	
+					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
 
@@ -37,7 +37,7 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-		</plugins>		
+		</plugins>
 	</build>
 
 	<profiles>
@@ -63,13 +63,13 @@
 			<version>${lotaris.rox.core.version}</version>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.5</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>socketio</groupId>
 			<artifactId>socketio</artifactId>
