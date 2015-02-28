@@ -1,14 +1,14 @@
 package com.lotaris.minirox.client;
 
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
 import com.lotaris.rox.common.model.RoxPayload;
 import com.lotaris.rox.common.model.RoxTestResult;
 import com.lotaris.rox.core.serializer.json.JsonSerializer;
-import io.socket.SocketIO;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.util.logging.Level;
+import java.net.URISyntaxException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ public class MiniRoxConnector implements Serializable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(MiniRoxConnector.class);
 
-	private SocketIO socket;
+	private final Socket socket;
 	
 	private static final MiniRoxConnector instance = new MiniRoxConnector();
 	
@@ -34,7 +34,6 @@ public class MiniRoxConnector implements Serializable {
 	 * @param miniRoxUrl The miniROX URL
 	 */
 	private MiniRoxConnector() {
-//		callback = new MiniRoxCallback(mutex);
 		this.socket = createConnectedSocket(MiniRoxConfiguration.getInstance().getMiniroxUrl());
 	}
 	
@@ -49,7 +48,7 @@ public class MiniRoxConnector implements Serializable {
 	 * @return True if mini ROX is connected
 	 */
 	private boolean isStarted() {
-		return socket != null && socket.isConnected();
+		return socket != null && socket.connected();
 	}
 	
 	/**
@@ -126,11 +125,12 @@ public class MiniRoxConnector implements Serializable {
 	 * @param projectName The project name
 	 * @param projectVersion The project version
 	 * @param category The category
+	 * @param duration The duration of the test run
 	 */
 	public void notifyEnd(String projectName, String projectVersion, String category, long duration) {
 		try {
 			if (isStarted()) {
-				JSONObject startNotification = new JSONObject().
+				JSONObject endNotification = new JSONObject().
 					put("project", new JSONObject().
 						put("name", projectName).
 						put("version", projectVersion)
@@ -138,7 +138,7 @@ public class MiniRoxConnector implements Serializable {
 					put("category", category).
 					put("duration", duration);
 				
-				socket.emit("run:end", startNotification);
+				socket.emit("run:end", endNotification);
 			}
 			else {
 				LOGGER.warn("Minirox is not available to send the end notification");
@@ -159,7 +159,7 @@ public class MiniRoxConnector implements Serializable {
 	 * 
 	 * @param payload The payload to send
 	 */
-	public void send(RoxPayload payload) {					
+	public void send(RoxPayload payload) {		
 		try {
 			if (isStarted()) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -190,7 +190,7 @@ public class MiniRoxConnector implements Serializable {
 		try {
 			if (isStarted()) {
 				final MiniRoxFilterAcknowledger acknowledger = new MiniRoxFilterAcknowledger();
-
+				
 				// Be sure that the emit/ack is synchronous to get the filters before the test are run
 				new Thread(new Runnable() {
 					@Override
@@ -212,15 +212,13 @@ public class MiniRoxConnector implements Serializable {
 					acknowledger.wait();
 				}
 
-				String filters [] = acknowledger.getFilters();
-
-				if (filters != null) {
-					for (String filter : filters) {
+				if (!acknowledger.isFilters()) {
+					for (String filter : acknowledger.getFilters()) {
 						LOGGER.info("Filter element: {}", filter);
 					}
 				}
 
-				return filters;
+				return acknowledger.getFilters();
 			}
 		}
 		catch (Exception e) {
@@ -240,21 +238,25 @@ public class MiniRoxConnector implements Serializable {
 	 * @param miniRoxUrl The miniROX URL
 	 * @return The socket connected to MiniROX or null if the connection is not possible
 	 */
-	private SocketIO createConnectedSocket(final String miniRoxUrl) {
+	private Socket createConnectedSocket(final String miniRoxUrl) {
 		try {
-			final SocketIO initSocket = new SocketIO(miniRoxUrl);
-
-			// Be sure the logging from the dirty lib is disabled
-			java.util.logging.Logger.getLogger("io.socket").setLevel(Level.OFF);
+			final Socket initSocket = IO.socket(miniRoxUrl);
 
 			final MiniRoxCallback callback = new MiniRoxCallback();
+			
+			initSocket.on(Socket.EVENT_CONNECT, callback);
+			initSocket.on(Socket.EVENT_CONNECT_ERROR, callback);
+			initSocket.on(Socket.EVENT_CONNECT_TIMEOUT, callback);
+			initSocket.on(Socket.EVENT_CONNECT_ERROR, callback);
+			initSocket.on(Socket.EVENT_DISCONNECT, callback);
+			initSocket.on(Socket.EVENT_ERROR, callback);
 			
 			// Be sure that the emit/ack is synchronous to get the filters before the test are run
 			LOGGER.trace("Connection to minirox"); // Unable to use the logger into the run method
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					initSocket.connect(callback);
+					initSocket.connect();
 				}
 			}).start();
 			
@@ -262,14 +264,14 @@ public class MiniRoxConnector implements Serializable {
 				callback.wait();
 			}
 
-			if (!initSocket.isConnected()) {
+			if (!initSocket.connected()) {
 				LOGGER.warn("Minirox is not available");
 				return null;
 			}
 			
 			return initSocket;
 		}
-		catch (MalformedURLException | SecurityException | InterruptedException e) {
+		catch (URISyntaxException | InterruptedException e) {
 			LOGGER.warn("Unknown error", e);
 		}
 		

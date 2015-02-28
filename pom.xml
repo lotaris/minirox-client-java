@@ -6,7 +6,7 @@
 
 	<groupId>com.lotaris.minirox.client</groupId>
 	<artifactId>minirox-client-java</artifactId>
-	<version>2.1.1</version>
+	<version>2.1.2</version>
 	<packaging>jar</packaging>
 
 	<name>MiniROX Client Java</name>
@@ -184,10 +184,15 @@
 			<version>1.7.5</version>
 		</dependency>
 
-		<dependency>
+<!--		<dependency>
 			<groupId>socketio</groupId>
 			<artifactId>socketio</artifactId>
 			<version>1.0</version>
-		</dependency>
+		</dependency>-->
+		<dependency>
+			<groupId>com.github.nkzawa</groupId>
+			<artifactId>socket.io-client</artifactId>
+			<version>0.4.1</version>
+		</dependency>		
 	</dependencies>
 </project>

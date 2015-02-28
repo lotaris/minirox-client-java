@@ -1,6 +1,6 @@
 package com.lotaris.minirox.client;
 
-import io.socket.IOAcknowledge;
+import com.github.nkzawa.socketio.client.Ack;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Laurent Prevost, laurent.prevost@lotaris.com
  */
-public class MiniRoxFilterAcknowledger implements IOAcknowledge {
+public class MiniRoxFilterAcknowledger implements Ack {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MiniRoxFilterAcknowledger.class);
 
 	/**
@@ -22,7 +22,7 @@ public class MiniRoxFilterAcknowledger implements IOAcknowledge {
 	private List<String> filters = new ArrayList<>();
 	
 	@Override
-	public void ack(Object... os) {
+	public void call(Object... os) {
 		try {
 			JSONArray jsonFilters = ((JSONObject) os[0]).getJSONArray("filters");
 
@@ -49,5 +49,9 @@ public class MiniRoxFilterAcknowledger implements IOAcknowledge {
 		else {
 			return null;
 		}
+	}
+	
+	public boolean isFilters() {
+		return !filters.isEmpty();
 	}
 }

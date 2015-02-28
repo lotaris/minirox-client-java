@@ -10,8 +10,8 @@
 <dependency>
   <groupId>com.lotaris.minirox.client</groupId>
   <artifactId>minirox-client-java</artifactId>
-  <version>2.1.1</version>
-</dependenc>
+  <version>2.1.2</version>
+</dependency>
 ```
 
 ### Requirements
